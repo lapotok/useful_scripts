@@ -1,4 +1,5 @@
 # Анализ спектров из Ultrospec 2100
+<!--
 ---
 title: "Анализ спектров из Ultrospec 2100"
 author: "Альтшулер Евгений"
@@ -7,6 +8,7 @@ output:
   html_document:
     keep_md: true
 ---
+-->
 ## Что надо сделать
 
 * Измерить спектры 4 белков (Protein A mutants Z5, Z7, G5, G7) против 0.1 M Gly pH 2.5
