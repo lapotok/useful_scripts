@@ -94,7 +94,7 @@ res = analyse_spectra(load_spectra("/Volumes/Document/Personal/Altshuler_E/misc/
 res$plot %>% print()
 ```
 
-![](analyse_spectra_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](https://raw.githubusercontent.com/lapotok/useful_scripts/master/ultrospec/analyse_spectra_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ```r
 res$OD_table %>% kable() %>% kable_styling(full_width = F)
