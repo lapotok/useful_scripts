@@ -1,4 +1,4 @@
-# read XLSX file into a matrix wi,th 1:12 x A:H dimensions
+# read XLSX file into a matrix with 1:12 x A:H dimensions
 read_plate = function(fn){
   # import Multiscan files *.001 etc. 
   # TODO
@@ -21,5 +21,6 @@ parse_plate = function(x){
 
 read_xl_copypasted = function(text){}
 
-build.calibr_curve = function(x){}
+build_calibr_curve = function(x){}
 
+calc_conc_with_calibr = function(x){}
