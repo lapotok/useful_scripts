@@ -8,23 +8,26 @@ ref.name = "-70"
 # Пример анализа
 
 ```r
+# ============= грузим библиотеки ============= #
 library(drc)
 library(tidyverse)
-library(latex2exp)
 
-ld = rd %>% gather("Run", "Value", -Sample, -Conc)
-calibr = ld %>% as.tibble() %>% filter(Sample == ref_name)
-calibr_m = drm(Value~Conc, data=calibr, fct=LL.5())
-calibr_mb = boxcox(calibr_m, plotit=F)
-confint(calibr_mb)
-calibr_mb_coeff = calibr_mb$coefficients
+# ============= фитируем калибровку ============= #
+ld = rd %>% gather("Run", "Value", -Sample, -Conc)   # реформатирование
+calibr = ld %>% filter(Sample == ref_name)           # берем только калибровку
+calibr_m = drm(Value~Conc, data=calibr, fct=LL.5())  # генерация модели
+calibr_mb = boxcox(calibr_m, plotit=F)               # уточнение модели
+confint(calibr_mb)                                   # доверительные интервалы коэффициентов (b=slope)
+# modelFit(calibr_mb)
+# compParm(calibr_mb, "b", "-")
 
-# prediction
+# ============= строим график ============= #
+# строим кривую по точкам от "нуля"
 pred_xlim = c(
   ifelse(min(calibr$Conc) == 0, min(calibr$Conc[calibr$Conc > 0])/10, min(calibr$Conc)),
   max(calibr$Conc)
 )
-pred = expand.grid(conc=exp(seq(log(pred_xlim[1]), log(pred_xlim[2]), length=100)))
+pred = expand.grid(conc=exp(seq(log(pred_xlim[1]), log(max(calibr$Conc)), length=100)))
 pm = predict(calibr_mb, newdata=pred, interval="confidence")
 pred$p <- pm[,1]
 pred$pmin <- pm[,2]
@@ -33,7 +36,7 @@ pred$pmax <- pm[,3]
 calibr$Conc0 <- calibr$Conc
 calibr$Conc0[calibr$Conc0 == 0] <- pred_xlim[1]
 
-calibr_mb_plot = ggplot(calibr, aes(x = Conc0, y = Value)) +
+ggplot(calibr, aes(x = Conc0, y = Value)) +
   geom_point(size=5, alpha=.4, na.rm = T) +
   geom_ribbon(data=pred, aes(x=conc, y=p, ymin=pmin, ymax=pmax), alpha=0.2) +
   geom_line(data=pred, aes(x=conc, y=p)) +
@@ -42,7 +45,7 @@ calibr_mb_plot = ggplot(calibr, aes(x = Conc0, y = Value)) +
   annotation_logticks(sides="lb") +
   coord_cartesian(xlim = c(pred_xlim[1]*0.9,pred_xlim[2]*1.2), ylim=c(min(pred$pmin)*0.5, max(pred$pmax))*1.5, expand = F) +
   xlab("Концентрация белка, нг/мл") + ylab("Сигнал (CPS)") +
-  theme_classic(base_size = 20) 
+  theme_classic() 
 ```
 
 Формула функции 5PL
@@ -52,9 +55,21 @@ calibr_mb_plot = ggplot(calibr, aes(x = Conc0, y = Value)) +
 Смысл коэффициентов
 
 * **B** - наклон кривой
-* **C** - сигнал в точке с бесконечно большой концентрацией
-* **D** - сигнал в точке с нулевой концентрацией
+* **C** - сигнал в точке с нулевой концентрацией
+* **D** - сигнал в точке с бесконечно большой концентрацией
 * **E** - точка перегиба кривой (центральная точка)
 * **F** - фактор ассимметрии
 
-<img src="https://www.biolegend.com/NewsLegend/062618curvefitblog/Fig.%206%204PLInfo.jpg">
+Дальнейшие шаги
+
+* Mixed effects
+* Outlier detection
+  - https://www.graphpad.com/guides/prism/6/statistics/index.htm?stat_checklist_identifying_outliers.htm
+  - https://www.graphpad.com/support/faqid/1598/
+  - https://www.unistat.com/bioassay-analysis/
+  - https://www.unistat.com/guide/bioassay-analysis-overview/#u1002
+  - https://www.unistat.com/guide/bioassay-analysis-overview/#u1006
+  - https://www.unistat.com/guide/goodness-of-fit-outlier-tests/
+  - https://www.unistat.com/guide/bioassay-analysis-parallel-line-method/#u10121
+* Итерации ремоделлирования при удалении outliers из калибровки
+* Отчет в Excel
