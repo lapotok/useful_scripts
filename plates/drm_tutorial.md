@@ -56,3 +56,5 @@ calibr_mb_plot = ggplot(calibr, aes(x = Conc0, y = Value)) +
 * **D** - точка перегиба кривой (центральная точка)
 * **E** - сигнал в точке с бесконечно большой концентрацией
 * **F** - фактор ассимметрии
+
+<img src="https://www.biolegend.com/NewsLegend/062618curvefitblog/Fig.%206%204PLInfo.jpg">
