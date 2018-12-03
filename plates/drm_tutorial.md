@@ -44,3 +44,15 @@ calibr_mb_plot = ggplot(calibr, aes(x = Conc0, y = Value)) +
   xlab("Концентрация белка, нг/мл") + ylab("Сигнал (CPS)") +
   theme_classic(base_size = 20) 
 ```
+
+Формула функции 5PL
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=f(x,(b,c,d,e,f))=c&plus;\frac{d-c}{(1&plus;exp(b\cdot(\log(x)-\log(e))))^f}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?f(x,(b,c,d,e,f))=c&plus;\frac{d-c}{(1&plus;exp(b\cdot(\log(x)-\log(e))))^f}" title="f(x,(b,c,d,e,f))=c+\frac{d-c}{(1+exp(b\cdot(\log(x)-\log(e))))^f}" /></a>
+
+Смысл коэффициентов
+
+* **B** - сигнал в точке с нулевой концентрацией
+* **C** - наклон кривой
+* **D** - точка перегиба кривой (центральная точка)
+* **E** - сигнал в точке с бесконечно большой концентрацией
+* **F** - фактор ассимметрии
