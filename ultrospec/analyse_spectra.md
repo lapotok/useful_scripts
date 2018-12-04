@@ -46,6 +46,8 @@ load_spectra = function(dir){ # dir for xls(x) files
   return(loaded)
 }
 
+##### TODO: geom_xspline
+
 smooth.spline2 <- function(formula, data, ...) { 
   mat <- model.frame(formula, data) 
   smooth.spline(mat[, 2], mat[, 1])
