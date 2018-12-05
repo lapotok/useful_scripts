@@ -62,6 +62,7 @@ big %>% ggqqplot("var1", facet.by = "bspecies")
 Теперь нужно "приделать" дополнительные группы к основной таблице. Это можно сделать одной командой
 
 ```r
+library(magrittr)
 big %<>% inner_join(groups, by=c("bspecies"="gspecies"))
 ```
 
@@ -81,7 +82,6 @@ big %>%
 ```r
 # группировка
 library(purrr)
-library(magrittr)
 big %<>% 
   mutate( # создаем колонки, в которые помещаем соответствующие значения групп из вспомогательной таблицы
     genus = map_chr(bspecies, # для каждого значения из bspecies (таблица big)
