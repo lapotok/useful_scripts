@@ -58,6 +58,25 @@ big %>%
 library(ggpubr)
 big %>% ggqqplot("var1", facet.by = "bspecies")
 
+```
+Теперь нужно "приделать" дополнительные группы к основной таблице. Это можно сделать одной командой
+
+```r
+big %<>% inner_join(groups, by=c("bspecies"="gspecies"))
+```
+
+Теперь считаем для каждой НОВОЙ группы среднее и считаем к-во наблюдений в такой группе
+
+```r
+big %>% 
+  group_by(size) %>% 
+  summarise(count = n(), mean = mean(var1))
+```
+---
+
+Также эту процедуру можно написать самому, что больше строчек занимает ;)
+
+```r
 # группировка
 library(purrr)
 library(magrittr)
@@ -76,9 +95,4 @@ big %<>%
                      as.character
                    )
   )
-
-# считаем для каждой НОВОЙ группы среднее и считаем к-во наблюдений в такой группе
-big %>% 
-  group_by(size) %>% 
-  summarise(count = n(), mean = mean(var1))
 ```
