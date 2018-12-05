@@ -4,7 +4,7 @@
 
 1. Таблица **big**, где есть какие-то данные с наблюдениями, для которых указаны виды (**b**species)
 
-```{r}
+```r
 # пример большой таблицы
 big = data.frame(
   bspecies = c("Rattus rattus", "Rattus rattus", "Rattus norvegicus", "Mus musculus", "Rattus norvegicus", "Canis lupus", "Felis catus"),
@@ -13,7 +13,6 @@ big = data.frame(
 )
 ```
 
-```
 |bspecies          | var1| var2|
 |:-----------------|----:|----:|
 |Rattus rattus     |    1|   45|
@@ -23,11 +22,10 @@ big = data.frame(
 |Rattus norvegicus |    7|   41|
 |Canis lupus       |    3|   65|
 |Felis catus       |    4|   58|
-``` 
 
 2. Таблица **groups**, где для каждого вида (**g**species) указано, к какой группе он относится
 
-```{r}
+```r
 # пример таблицы с группами
 groups = data.frame(
   gspecies = c("Rattus rattus", "Rattus norvegicus", "Mus musculus", "Canis lupus", "Felis catus"),
@@ -36,7 +34,6 @@ groups = data.frame(
 )
 ```
 
-```
 |gspecies          |genus  |size  |
 |:-----------------|:------|:-----|
 |Rattus rattus     |Rattus |small |
@@ -44,13 +41,12 @@ groups = data.frame(
 |Mus musculus      |Mus    |small |
 |Canis lupus       |Canis  |big   |
 |Felis catus       |Felis  |big   |
-```
  
 ## Задача
 
 Создать в таблице **big** дополнительные колонки, в которых будут указаны группы, к которым относится вид, чтобы можно было группировать наблюдения.
  
-```{r}
+```r
 # проверка нормальности (т.к. данных мало - получается фигня)
 library(tidyverse)
 
