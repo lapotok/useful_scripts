@@ -1,0 +1,140 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Откуда берутся формулы для уравнений ассоциации и диссоциации
+
+Уравнение реакции
+
+\[
+[\text{Ab}] + [\text{Ag}] \underset{k_d}{\overset{k_a}{\rightleftharpoons}} [\text{Ab}\ \text{Ag}]
+\]
+
+
+Дифференциальное уравнение скорости ассоциации
+
+\[
+\frac{d[\text{Ab}\ \text{Ag}]}{dt} = k_a \cdot [\text{Ab}] \cdot [\text{Ag}] - k_d \cdot [\text{Ab}\ \text{Ag}]
+\]
+
+Т.е. скорость суммарная скорость изменения концентрации комплекса складывается из скорости образования и скорости разваливания.
+
+Интегральное уравнение позволяет описывать динамику ассоциации комплекса при условии константности концентрации сорбированных антител
+
+\[
+R_\text{association}(t) = \underset{R_\text{eq}}{\underbrace{\frac{[\text{Ag}] \cdot R_\text{max}}{[\text{Ag}] + \frac{k_{d}}{k_{a}})}}}  \cdot (1 - e ^ {-t \cdot (k_{a} \cdot [\text{Ag}] + k_{d}))}
+\]
+
+$R_\text{max}$ - это максимальный теоретический уровень посадки антигена на данное количество иммобилизированного антитела (если $[\text{Ag}]_{\to \infty}, t \to \infty$).
+
+$R_\text{eq}$ - это сколько антигена в данной концентрации может сесть на антитело при $t \to \infty$.
+
+
+
+При этом, уравнение диссоциации зависит только от $k_d$.
+
+\[
+R_\text{dissociation}(t) = R_0 \cdot e^{-t\cdot k_{d}}
+\]
+
+
+## Дополнительные сложности, не учтенные в этом уравнении
+
+* Дрейф базовой линии
+* Гетерогенность лиганда (т.е. есть 2 типа лиганда-антигена с разным сродством к антителу, причем $[\text{Ag}_1]+[\text{Ag}_2]=[\text{Ag}]$), например, из-за разваливания комплекса или деградации
+* Бивалентное связывание антитела (если бы антиген был иммобилизирован)
+* Агрегаты антигена (т.е. не 1 молекула связывается, а несколько)
+* Скачки сигнала при переходе в другой буфер
+
+# Практика: фитирование сенсограмм 
+
+```{r eval=F}
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+
+# fn = file.choose()
+fn = "2019_02_12__10_56_05_octet_Preprocessed Data.csv"
+
+reads = rio::import(fn, skip=63) # skip the header
+reads = reads %>% dplyr::select_if(~sum(!is.na(.)) > 0) # skip na cols
+
+reads = reads %>% set_colnames(paste(reads[2,], reads[1,]))
+
+reads = reads[ -(1:4),]
+
+reset_time = function(x){x-x[1]}
+reads = reads %>% mutate_all(as.numeric) %>% mutate_at(vars(starts_with("Sample Loc")), funs(reset_time))
+
+reads = 
+  reads %>% 
+  mutate(n = row_number()) %>% 
+  gather(var, val, -n) %>% 
+  separate(var, c("type", "sensor"), sep = ": ") %>% 
+  spread("type", "val") %>%
+  arrange(sensor, `Sample Loc`) 
+
+
+reads_1 = 
+  reads %>% 
+  filter(sensor == "t1E2c5") %>% 
+  select(-n, -sensor) %>% 
+  set_colnames(c("y", "x"))
+
+ggplot(
+  reads_1,
+  aes(x = x, y = y)
+) + geom_line()+
+  geom_line(data = data.frame(
+    x = 1:900,
+    y = binding1to1(1:900,600,50e-9,kon=4e5,koff=2e-4,rmax=0.4)
+  ), col= "blue")
+
+
+
+# ===========
+
+req <- function(conc, rmax, kd) {
+  (conc * rmax) / (conc + kd)
+}
+
+association <- function(t, conc, kon, koff, rmax) {
+  req(conc, rmax, (koff / kon)) * (1 - exp(-1 * (kon * conc + koff) * t))
+}
+
+dissociation <- function(r0, koff, t) {
+  r0 * exp(-1 * koff * t)
+}
+
+binding1to1 <- function(t, t0, conc, kon, koff, rmax, r0 = rmax, drift = 0, offset = 0,
+                        doffset = 0) {
+  
+  if (any(t < 0)) stop("Negative value for t")
+  if (any(t0 <= 0)) stop("Invalid value for t0")
+  
+  ifelse(t < t0,
+         association(t, conc, kon, koff, rmax) + (drift * t) + offset,
+         dissociation(r0, koff, t - t0)  +
+           (drift * t) + offset + doffset
+  )
+}
+
+# ===========
+
+
+
+startingvalues <- list(kon=4e5,koff=2e-4,rmax=0.41, r0=0.41, drift=0.1)
+library(pbm)
+fit <- nls(y ~ binding1to1(x,600,50e-9,kon,koff,rmax, r0, drift),
+           data=reads_1,
+           start=startingvalues, trace = T)
+
+# Plot the fitted model
+plot(reads_1$x, reads_1$y, type="p", cex=.5, col = scales::alpha("black", .1))
+lines(reads_1$x,predict(fit, list(x=reads_1$x)), col="blue")
+```
